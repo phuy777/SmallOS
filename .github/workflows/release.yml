@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing release tag to update
+        required: true
+        default: v0.0.1
+      source_ref:
+        description: Branch, tag, or commit to build
+        required: true
+        default: main
 
 permissions:
   contents: write
@@ -14,6 +24,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
 
       - name: Install ISO build dependencies
         run: |
@@ -48,7 +60,7 @@ jobs:
 
       - name: Prepare release assets
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
           set -eu
@@ -73,7 +85,29 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          name: LeptoOS ${{ github.ref_name }}
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          name: LeptoOS ${{ inputs.tag_name || github.ref_name }}
           generate_release_notes: true
           files: release-assets/*
           fail_on_unmatched_files: true
+          overwrite_files: true
+
+      - name: Remove legacy SmallOS release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
+        run: |
+          set -eu
+          gh release view "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json assets > "$RUNNER_TEMP/release-assets.json"
+          jq -r '.assets[].name | select(
+            startswith("smallos-") or
+            startswith("kernel-") or
+            . == "BUILD-INFO.txt" or
+            . == "SHA256SUMS"
+          )' "$RUNNER_TEMP/release-assets.json" |
+            while IFS= read -r asset; do
+              gh release delete-asset "$RELEASE_TAG" "$asset" \
+                --repo "$GITHUB_REPOSITORY" --yes
+            done
