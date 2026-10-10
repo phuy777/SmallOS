@@ -48,8 +48,8 @@ start:
 
     lgdt gdt64_pointer
 
-    movl %cr4, %eax
-    orl $0x20, %eax
+    movl %cr4, %eax    #CR4 HERE
+    orl $0x620, %eax
     movl %eax, %cr4
 
     movl $pml4_table, %eax

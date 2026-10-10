@@ -1,5 +1,6 @@
+ifeq ($(origin CC),default)
 CC := x86_64-elf-gcc
-LD := x86_64-elf-ld
+endif
 
 BUILD_DIR := build
 KERNEL := $(BUILD_DIR)/kernel.elf
@@ -7,30 +8,41 @@ ISO_ROOT := $(BUILD_DIR)/iso
 ISO := $(BUILD_DIR)/smallos.iso
 GRUB_CFG := grub/grub.cfg
 GRUB_MKRESCUE := grub-mkrescue
+QEMU ?= qemu-system-x86_64
+QEMUFLAGS ?= -cdrom $(ISO)
+
+C_SOURCES := $(wildcard *.c)
+ASM_SOURCES := $(wildcard *.S)
+C_OBJECTS := $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
+ASM_OBJECTS := $(patsubst %.S,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
+KERNEL_OBJECTS := $(ASM_OBJECTS) $(C_OBJECTS)
 
 CFLAGS := -m64 -std=gnu11 -O2 -Wall -Wextra \
 	-ffreestanding -fno-builtin -fno-stack-protector \
-	-fno-pic -fno-pie -mno-red-zone
+	-fno-pic -fno-pie -mno-red-zone -MMD -MP
 ASFLAGS := -m64
-LDFLAGS := -m elf_x86_64
+LDFLAGS := -m64 -nostdlib -no-pie -Wl,-T,linker.ld -Wl,-e,start
 
-.PHONY: all iso clean
+.PHONY: all iso run clean
 
 all: $(KERNEL)
 
 iso: $(ISO)
 
+run: $(ISO)
+	$(QEMU) $(QEMUFLAGS)
+
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(BUILD_DIR)/boot.o: boot.S Makefile | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
 	$(CC) $(ASFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/main.o: main.c Makefile | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/main.o linker.ld
-	$(LD) $(LDFLAGS) -T linker.ld -e start -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/main.o
+$(KERNEL): $(KERNEL_OBJECTS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(KERNEL_OBJECTS)
 
 $(ISO): $(KERNEL) $(GRUB_CFG) Makefile
 	mkdir -p $(ISO_ROOT)/boot/grub
@@ -40,3 +52,5 @@ $(ISO): $(KERNEL) $(GRUB_CFG) Makefile
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+-include $(C_OBJECTS:.o=.d)

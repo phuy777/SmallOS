@@ -21,6 +21,15 @@ Build the kernel from the project root:
 make
 ```
 
+Select a compiler with `CC` (`x86_64-elf-gcc` is the default):
+
+```sh
+make CC=gcc
+make CC=clang
+```
+
+All C source files in the project root are included automatically in the kernel build.
+
 Create a bootable ISO image:
 
 ```sh
@@ -32,16 +41,18 @@ The kernel is written to `build/kernel.elf`, and the ISO image is written to `bu
 ### Requirements
 
 - GNU Make
-- An `x86_64-elf` GCC and binutils toolchain (`x86_64-elf-gcc` and `x86_64-elf-ld`)
+- GCC or Clang with x86-64 support (an `x86_64-elf-gcc` cross-compiler is also supported)
 - GRUB utilities, including `grub-mkrescue`
 - `xorriso`, as required by `grub-mkrescue`
 - QEMU (`qemu-system-x86_64`) to run the ISO in an emulator
 
-To try the ISO with QEMU after building:
+Build the ISO and run it with QEMU:
 
 ```sh
-qemu-system-x86_64 -cdrom build/smallos.iso
+make run
 ```
+
+Override the emulator or its arguments with `QEMU` and `QEMUFLAGS` if needed.
 
 Remove generated build files with:
 
@@ -55,6 +66,7 @@ make clean
 | --- | --- |
 | `boot.S` | Multiboot2 entry point and initial x86-64 setup |
 | `main.c` | Kernel entry routine |
+| `kernel.c` / `kernel.h` | Kernel terminal implementation and declarations |
 | `linker.ld` | Kernel memory layout |
 | `grub/grub.cfg` | GRUB boot menu configuration |
 | `Makefile` | Build, ISO creation, and cleanup targets |
