@@ -4,14 +4,7 @@ LeptoOS is an experimental operating system project built from the ground up. It
 
 The project is at an early stage and will continue to evolve. Its current implementation boots a 64-bit kernel through GRUB and writes a simple greeting to VGA text memory. It is not intended for everyday use.
 
-## Current status
-
-- Boots through GRUB using the Multiboot2 protocol.
-- Sets up the initial x86-64 long-mode environment.
-- Writes `hello world` to the VGA text buffer.
-- Halts after the initial kernel routine completes.
-
-These are foundational steps rather than a complete operating system. Features such as device support, memory management, processes, storage, and a user interface may be developed as the project progresses.
+Features such as device support, memory management, processes, storage, and a user interface may be developed as the project progresses.
 
 ## Building
 
