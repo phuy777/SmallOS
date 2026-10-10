@@ -60,6 +60,20 @@ Remove generated build files with:
 make clean
 ```
 
+## Releases
+
+Push a version tag such as `v0.1.0` to build and publish a GitHub release:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow builds the kernel and ISO, verifies the kernel's Multiboot2
+header, and attaches the bootable ISO, kernel ELF, a ZIP bundle, build information,
+and SHA-256 checksums. GitHub generates the release notes from the repository
+changes. GitHub Actions must be enabled for the repository.
+
 ## Project layout
 
 | File or directory | Purpose |
