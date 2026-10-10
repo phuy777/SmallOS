@@ -36,7 +36,7 @@ Create a bootable ISO image:
 make iso
 ```
 
-The kernel is written to `build/kernel.elf`, and the ISO image is written to `build/smallos.iso`.
+The kernel is written to `build/kernel.elf`, and the ISO image is written to `build/leptoos.iso`.
 
 ### Requirements
 

@@ -5,7 +5,7 @@ endif
 BUILD_DIR := build
 KERNEL := $(BUILD_DIR)/kernel.elf
 ISO_ROOT := $(BUILD_DIR)/iso
-ISO := $(BUILD_DIR)/smallos.iso
+ISO := $(BUILD_DIR)/leptoos.iso
 GRUB_CFG := grub/grub.cfg
 GRUB_MKRESCUE := grub-mkrescue
 QEMU ?= qemu-system-x86_64
